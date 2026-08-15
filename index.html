@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PTT Marvel 風格靜態文章列表版型">
+  <title>Marvel 靈異故事板</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <section class="login-cover" id="login-cover">
+    <form class="login-box" id="login-form">
+      <div class="login-heading">批踢踢實業坊</div>
+      <label for="login-code">請輸入您的代號</label>
+      <div class="login-field"><span>代號</span><input id="login-code" maxlength="20" autocomplete="off" autofocus aria-describedby="login-hint"></div>
+      <p id="login-hint">輸入自創代號後，按 Enter 進入 marvel 看板</p>
+    </form>
+  </section>
+
+  <main class="site-shell" id="site-main" hidden>
+    <header class="topbar" id="site-topbar">
+      <div class="topbar__inner">
+        <div class="brandline">
+          <span class="brand">批踢踢實業坊</span><span class="chevron">›</span>
+          <span class="board-label">看板 <strong>marvel</strong></span>
+        </div>
+        <div class="utility"><button id="open-contact" type="button">聯絡我們</button><span>關於我們</span></div>
+      </div>
+    </header>
+
+    <section class="board" id="board-view" aria-label="Marvel 文章列表">
+      <nav class="toolbar" aria-label="看板導覽">
+        <div class="toolbar__tabs"><span class="nav-button">看板</span><button class="nav-button nav-button--interactive" id="open-archive" type="button">精華區</button></div>
+        <div class="toolbar__pages">
+          <button class="nav-button nav-button--interactive" id="sort-oldest" type="button" aria-pressed="false">最舊</button><button class="nav-button nav-button--interactive nav-button--muted" id="previous-page" type="button" disabled>‹ 上頁</button>
+          <button class="nav-button nav-button--interactive" id="next-page" type="button">下頁 ›</button><button class="nav-button nav-button--interactive" id="sort-newest" type="button" aria-pressed="false">最新</button>
+        </div>
+      </nav>
+      <label class="search" for="board-search"><span class="sr-only">搜尋文章</span><input id="board-search" type="search" placeholder="搜尋文章⋯" autocomplete="off"><button id="clear-search" type="button" aria-label="清除搜尋" hidden>×</button></label>
+      <div class="post-list" id="post-list"></div>
+      <button class="board-hotkey" id="board-post" type="button"><em>^P</em> 發表文章</button>
+    </section>
+
+    <section class="archive-board" id="archive-view" aria-label="Marvel 精華區目錄索引" hidden>
+      <nav class="archive-toolbar" aria-label="看板導覽"><button id="archive-board-back" type="button">看板</button><span aria-current="page">精華區</span></nav>
+      <div class="archive-index">
+        <h1>◎ 精華區目錄索引 <span>(5701.6k)</span></h1>
+        <div class="archive-rule" aria-hidden="true">◇ ★━━━━━━━━━━━━━━━━━━┐</div>
+        <ul>
+          <li><span class="archive-diamond">◆</span><span class="archive-branch">│</span><span class="archive-folder">【版規】</span></li>
+          <li><span class="archive-diamond">◆</span><span class="archive-branch">│</span><span class="archive-folder">【經驗區】</span></li>
+          <li><span class="archive-diamond">◆</span><span class="archive-branch">│</span><span class="archive-folder">【考古區】</span></li>
+          <li><span class="archive-diamond">◆</span><span class="archive-branch">│</span><span class="archive-folder">【新聞區】</span></li>
+          <li><span class="archive-diamond">◆</span><span class="archive-branch">│</span><span class="archive-folder">【創作區】</span></li>
+        </ul>
+        <div class="archive-rule archive-rule--bottom" aria-hidden="true">◇ ★━━━━━━━━━━━━━━━━━━┘</div>
+      </div>
+      <button class="archive-back" id="archive-back" type="button">回到上層</button>
+    </section>
+
+    <section class="contact-page" id="contact-view" aria-labelledby="contact-title" hidden>
+      <div class="contact-card">
+        <h1 id="contact-title">聯絡我們</h1>
+        <div class="contact-divider" aria-hidden="true">────────────────────────</div>
+        <p>各機關來函，請透過電子信箱。</p>
+        <p>其他使用問題，請聯繫批踢踢粉絲團。</p>
+        <p>批踢踢人員皆為學生，處理速度較為緩慢，敬請見諒。</p>
+      </div>
+      <button class="archive-back" id="contact-back" type="button">回到上層</button>
+    </section>
+
+    <section class="terminal-frame" id="article-view" aria-label="文章內容" hidden>
+      <article class="article-page">
+        <header class="article-meta">
+          <div class="article-meta__row"><span class="article-meta__label">作者</span><span class="article-meta__value" id="article-author"></span></div>
+          <div class="article-meta__row"><span class="article-meta__label">標題</span><span class="article-meta__value" id="article-title"></span></div>
+          <div class="article-meta__row"><span class="article-meta__label">時間</span><span class="article-meta__value" id="article-time"></span></div>
+          <div class="article-meta__board"><span class="article-meta__label">看板</span><span class="article-meta__value">marvel</span></div>
+        </header>
+        <div class="article-divider"></div>
+        <div class="article-body">
+          <p id="article-copy"></p>
+          <p class="article-origin">※ 發信站: 批踢踢實業坊(ptt.cc)</p>
+          <div class="article-replies" id="article-replies" aria-label="回覆文章"></div>
+          <div class="article-pushes" id="article-pushes" aria-label="推文列表"></div>
+        </div>
+      </article>
+      <footer class="terminal-status" aria-label="文章瀏覽狀態">
+        <span class="terminal-status__page">瀏覽　第 1/1 頁（100%）</span>
+        <div class="terminal-status__commands">
+          <span class="terminal-status__muted">目前顯示：第 01~09 行　</span>
+          <button id="article-reply" type="button"><em>(y)</em>回應</button>
+          <button id="article-push" type="button"><em>(X%)</em>推文</button>
+          <button id="article-help" type="button"><em>(h)</em>說明</button>
+          <button id="article-back" type="button"><em>(←/→)</em>離開</button>
+        </div>
+      </footer>
+    </section>
+    <div id="dialog-root"></div>
+  </main>
+
+  <script>
+    const posts = [
+      ["爆", "hot", "經驗", "", "flattendghiant", "4/26"],
+      ["23", "warm", "閒聊", "", "cloudywindy", "2/15"],
+      ["8", "normal", "見聞", "還是以後都不吃烤肉", "moooonghost", "2/17"],
+      ["12", "warm", "問卦", "", "oldmenga", "3/10"],
+      ["4", "normal", "創作", "", "owlight", "5/25"],
+      ["18", "warm", "經驗", "", "plairane", "2/16"],
+      ["6", "normal", "經驗", "", "supeerstii", "5/26"],
+      ["31", "warm", "創作", "", "kingdorgan", "7/23"],
+      ["5", "normal", "閒聊", "", "stargazer", "2/4"],
+      ["", "quiet", "見聞", "", "craftair", "2/19"]
+    ];
+
+    const pageTwoPosts = posts.map(post => [...post]);
+
+    const articles = {
+      "2/17": {
+        author: "moooonghost",
+        category: "見聞",
+        title: "還是以後都不吃烤肉",
+        time: "Tue Feb 17 19:05:14 1998",
+        body: "計程車在報案的時候就被飛機掃過，4個人就離開了。我們救災到最後，才確認車內4人都已罹難。那個飛機頭有一部分撞到民宅，正確的數字沒辦法確定。現場有一股濃烈的氣味，那時候有些人看到便當都吃不下去，我沒有時間考慮這麼多啦，我肚子餓就吃了。這種的我看過的已經太多了。"
+      },
+      "2/4": {
+        author: "stargazer",
+        category: "閒聊",
+        title: "",
+        time: "2/4",
+        body: "我昨天夢到一個人，身穿黃色衣服，頭上帶著一個串珠連成的帽子，然後拿著一個托盤跟我說，叫我要幫他完成一件事，不然我就得永遠醒不來。"
+      }
+    };
+
+    const boardView = document.querySelector("#board-view");
+    const articleView = document.querySelector("#article-view");
+    const archiveView = document.querySelector("#archive-view");
+    const contactView = document.querySelector("#contact-view");
+    const siteTopbar = document.querySelector("#site-topbar");
+    const postList = document.querySelector("#post-list");
+    const oldestButton = document.querySelector("#sort-oldest");
+    const newestButton = document.querySelector("#sort-newest");
+    const previousPageButton = document.querySelector("#previous-page");
+    const nextPageButton = document.querySelector("#next-page");
+    const searchInput = document.querySelector("#board-search");
+    const clearSearchButton = document.querySelector("#clear-search");
+    const loginCover = document.querySelector("#login-cover");
+    const siteMain = document.querySelector("#site-main");
+    const loginForm = document.querySelector("#login-form");
+    const loginInput = document.querySelector("#login-code");
+    let userCode = localStorage.getItem("marvel-user-code") || "";
+    loginInput.value = userCode;
+    let lastOpenedPost = null;
+    let lastScrollY = 0;
+    let openedDate = null;
+    let sortOrder = "default";
+    let currentPage = 1;
+    let dialogMode = null;
+    let contactParent = "board";
+    let customPosts = JSON.parse(localStorage.getItem("marvel-custom-posts") || '{"1":[],"2":[]}');
+    [1, 2].forEach(page => {
+      customPosts[page] = (customPosts[page] || []).filter(row => String(row[6] || "").trim() !== "真的假的");
+    });
+    localStorage.setItem("marvel-custom-posts", JSON.stringify(customPosts));
+    let pushes = JSON.parse(localStorage.getItem("marvel-pushes") || "{}");
+    let replies = JSON.parse(localStorage.getItem("marvel-replies") || "{}");
+    const normalizeResponseTime = time => {
+      const value = String(time || "").trim();
+      return /^\d{1,2}:\d{2}$/.test(value) ? `08/13 ${value.padStart(5, "0")}` : value;
+    };
+    pushes = Object.fromEntries(Object.entries(pushes).map(([key, rows]) => [key, rows
+      .filter(row => row.author !== "caaaaaara")
+      .map(row => ({ ...row, time: normalizeResponseTime(row.time) }))]));
+    replies = Object.fromEntries(Object.entries(replies).map(([key, rows]) => [key, rows
+      .filter(row => row.author !== "caaaaaara")
+      .map(row => ({ ...row, time: normalizeResponseTime(row.time) }))]));
+    localStorage.setItem("marvel-pushes", JSON.stringify(pushes));
+    localStorage.setItem("marvel-replies", JSON.stringify(replies));
+
+    function responseTime(now = new Date()) {
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      return `${month}/${day} ${hour}:${minute}`;
+    }
+
+    function dateValue(date) {
+      const [month, day] = date.split("/").map(Number);
+      return month * 100 + day;
+    }
+
+    function displayedPosts() {
+      const currentPosts = [...(currentPage === 1 ? posts : pageTwoPosts), ...(customPosts[currentPage] || [])];
+      const query = searchInput.value.trim().toLocaleLowerCase("zh-TW");
+      const searchedPosts = query ? currentPosts.filter(post => {
+        const articleBody = articles[post[5]]?.body || "";
+        return [...post.slice(2), articleBody].filter(Boolean).join(" ").toLocaleLowerCase("zh-TW").includes(query);
+      }) : currentPosts;
+      if (sortOrder === "default") return searchedPosts;
+      return [...searchedPosts].sort((a, b) => {
+        const difference = dateValue(a[5]) - dateValue(b[5]);
+        return sortOrder === "oldest" ? difference : -difference;
+      });
+    }
+
+    function updateSortButtons() {
+      const oldestActive = sortOrder === "oldest";
+      const newestActive = sortOrder === "newest";
+      oldestButton.setAttribute("aria-pressed", String(oldestActive));
+      newestButton.setAttribute("aria-pressed", String(newestActive));
+      oldestButton.classList.toggle("nav-button--active", oldestActive);
+      newestButton.classList.toggle("nav-button--active", newestActive);
+    }
+
+    function updatePageButtons() {
+      const onFirstPage = currentPage === 1;
+      previousPageButton.disabled = onFirstPage;
+      nextPageButton.disabled = !onFirstPage;
+      previousPageButton.classList.toggle("nav-button--muted", onFirstPage);
+      nextPageButton.classList.toggle("nav-button--muted", !onFirstPage);
+      boardView.setAttribute("aria-label", `Marvel 文章列表，第 ${currentPage} 頁`);
+    }
+
+    function renderPosts() {
+      const results = displayedPosts();
+      postList.innerHTML = results.map(([score, tone, category, title, author, date, body = "", time = date]) => {
+        return `
+        <article class="post post--clickable" role="button" tabindex="0" aria-label="開啟 ${date} ${author} 的文章" data-date="${date}" data-author="${author}" data-category="${category}" data-title="${title}" data-body="${encodeURIComponent(body)}" data-time="${time}">
+          <div class="post__content">
+            <div class="post__title"><span>[${category}]</span> ${title}</div>
+            <div class="post__author">${author}</div>
+          </div>
+          <time class="post__date">${date}</time><span class="post__more">⋯</span>
+        </article>`;
+      }).join("");
+      if (!results.length) {
+        const empty = document.createElement("p");
+        empty.className = "search-empty";
+        empty.setAttribute("role", "status");
+        empty.textContent = `找不到符合「${searchInput.value.trim()}」的文章`;
+        postList.append(empty);
+      }
+
+      postList.querySelectorAll(".post--clickable").forEach(post => {
+        post.addEventListener("click", () => showArticle(post));
+        post.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            showArticle(post);
+          }
+        });
+      });
+      updateSortButtons();
+      updatePageButtons();
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      sortOrder = "default";
+      renderPosts();
+      window.scrollTo(0, 0);
+    }
+
+    function showArticle(postElement) {
+      const article = articles[postElement.dataset.date] || {
+        author: postElement.dataset.author,
+        category: postElement.dataset.category,
+        title: postElement.dataset.title,
+        time: postElement.dataset.time,
+        body: decodeURIComponent(postElement.dataset.body || "")
+      };
+      lastOpenedPost = postElement;
+      lastScrollY = window.scrollY;
+      openedDate = postElement.dataset.date;
+      document.querySelector("#article-author").textContent = article.author;
+      document.querySelector("#article-title").textContent = `[${article.category}]${article.title ? ` ${article.title}` : ""}`;
+      document.querySelector("#article-time").textContent = article.time;
+      document.querySelector("#article-copy").textContent = article.body;
+      renderResponses();
+      siteTopbar.hidden = true;
+      boardView.hidden = true;
+      articleView.hidden = false;
+      document.querySelector("#article-back").focus({preventScroll: true});
+      window.scrollTo(0, 0);
+    }
+
+    function showBoard() {
+      articleView.hidden = true;
+      archiveView.hidden = true;
+      contactView.hidden = true;
+      siteTopbar.hidden = false;
+      boardView.hidden = false;
+      document.querySelector(".board-label").innerHTML = '看板 <strong>marvel</strong>';
+      if (lastOpenedPost && document.body.contains(lastOpenedPost)) lastOpenedPost.focus({preventScroll: true});
+      window.scrollTo(0, lastScrollY);
+      openedDate = null;
+    }
+
+    function showArchive() {
+      boardView.hidden = true;
+      articleView.hidden = true;
+      archiveView.hidden = false;
+      contactView.hidden = true;
+      document.querySelector(".board-label").innerHTML = '精華區<sup>beta</sup> <strong>marvel</strong>';
+      window.scrollTo(0, 0);
+    }
+
+    function showContact() {
+      contactParent = archiveView.hidden ? "board" : "archive";
+      boardView.hidden = true;
+      articleView.hidden = true;
+      archiveView.hidden = true;
+      contactView.hidden = false;
+      document.querySelector(".board-label").innerHTML = '看板 <strong>marvel</strong>';
+      window.scrollTo(0, 0);
+    }
+
+    function closeContact() {
+      contactView.hidden = true;
+      if (contactParent === "archive") showArchive(); else showBoard();
+    }
+
+    function renderResponses() {
+      const key = `${currentPage}:${openedDate}`;
+      const replyRows = replies[key] || [];
+      document.querySelector("#article-replies").innerHTML = replyRows.map(row => `<p><span class="reply-mark">推</span><strong>${row.author}</strong><span>: ${row.text}</span><time>${row.time}</time></p>`).join("");
+      const rows = pushes[key] || [];
+      document.querySelector("#article-pushes").innerHTML = rows.map(row => `<p><strong class="push-${row.tone}">${row.tone}</strong><span>${row.author} : ${row.text}</span><time>${row.time}</time></p>`).join("");
+    }
+
+    function openDialog(mode) {
+      dialogMode = mode;
+      const titles = {post: "發表文章", reply: "回覆文章", push: "推文", help: "快捷鍵說明"};
+      const help = `<div class="bbs-help"><p>← / →　離開文章並回到原列表</p><p>Ctrl+P　發表文章</p><p>y　回覆文章</p><p>X 或 %　推文</p><p>h　顯示說明</p><p>Ctrl+X　送出文章</p></div>`;
+      const push = `<label>作者<input id="dialog-author" maxlength="20" readonly></label><div class="push-types"><label><input type="radio" name="tone" value="推" checked>1 推</label><label><input type="radio" name="tone" value="噓">2 噓</label><label><input type="radio" name="tone" value="→">3 箭頭</label></div><label>內容<input id="dialog-push-text" maxlength="80"></label>`;
+      const editor = `<label>作者<input id="dialog-author" maxlength="20" readonly></label>${mode === "post" ? '<label>標題<input id="dialog-title" maxlength="60"></label>' : ''}<label>內容<textarea id="dialog-body" placeholder="請輸入文章內容⋯"></textarea></label>`;
+      document.querySelector("#dialog-root").innerHTML = `<div class="bbs-dialog-backdrop"><section class="bbs-dialog" role="dialog" aria-modal="true" aria-label="${titles[mode]}"><header>${titles[mode]}</header><div class="bbs-dialog__content">${mode === "help" ? help : mode === "push" ? push : editor}</div><footer>${mode === "help" ? '' : `<button id="dialog-submit">${mode === "push" ? 'Enter 送出' : 'Ctrl+X 發表'}</button>`}<button id="dialog-close">Esc 取消</button></footer></section></div>`;
+      document.querySelector("#dialog-close").addEventListener("click", closeDialog);
+      const submit = document.querySelector("#dialog-submit");
+      if (submit) submit.addEventListener("click", submitDialog);
+      const authorInput = document.querySelector("#dialog-author");
+      if (authorInput) authorInput.value = userCode;
+      const first = (mode === "push" ? document.querySelector("#dialog-push-text") : document.querySelector("#dialog-body")) || document.querySelector("#dialog-close");
+      first.focus();
+    }
+
+    function closeDialog() {
+      dialogMode = null;
+      document.querySelector("#dialog-root").innerHTML = "";
+    }
+
+    function submitDialog() {
+      if (dialogMode === "push") {
+        const author = document.querySelector("#dialog-author").value.trim() || "anonymous";
+        const text = document.querySelector("#dialog-push-text").value.trim();
+        if (!text) return;
+        const tone = document.querySelector('input[name="tone"]:checked').value;
+        const now = new Date();
+        const time = responseTime(now);
+        const key = `${currentPage}:${openedDate}`;
+        pushes[key] = [...(pushes[key] || []), {tone, author, text, time}];
+        localStorage.setItem("marvel-pushes", JSON.stringify(pushes));
+        closeDialog(); renderResponses(); return;
+      }
+      const author = document.querySelector("#dialog-author").value.trim() || "anonymous";
+      const body = document.querySelector("#dialog-body").value.trim();
+      if (!body) return;
+      const reply = dialogMode === "reply";
+      const now = new Date();
+      const time = responseTime(now);
+      if (reply) {
+        const key = `${currentPage}:${openedDate}`;
+        replies[key] = [...(replies[key] || []), {author, text: body, time}];
+        localStorage.setItem("marvel-replies", JSON.stringify(replies));
+        closeDialog(); renderResponses(); return;
+      }
+      const title = document.querySelector("#dialog-title").value.trim() || "（無標題）";
+      const date = `${now.getMonth()+1}/${now.getDate()}`;
+      const row = ["", "quiet", "發文", title, author, date, body, now.toString()];
+      customPosts[currentPage] = [...(customPosts[currentPage] || []), row];
+      localStorage.setItem("marvel-custom-posts", JSON.stringify(customPosts));
+      closeDialog();
+      renderPosts();
+    }
+
+    oldestButton.addEventListener("click", () => { sortOrder = "oldest"; renderPosts(); });
+    newestButton.addEventListener("click", () => { sortOrder = "newest"; renderPosts(); });
+    previousPageButton.addEventListener("click", () => goToPage(1));
+    nextPageButton.addEventListener("click", () => goToPage(2));
+    document.querySelector("#open-archive").addEventListener("click", showArchive);
+    document.querySelector("#archive-board-back").addEventListener("click", showBoard);
+    document.querySelector("#archive-back").addEventListener("click", showBoard);
+    document.querySelector("#open-contact").addEventListener("click", showContact);
+    document.querySelector("#contact-back").addEventListener("click", closeContact);
+    searchInput.addEventListener("input", () => { clearSearchButton.hidden = !searchInput.value; renderPosts(); });
+    clearSearchButton.addEventListener("click", () => { searchInput.value = ""; clearSearchButton.hidden = true; renderPosts(); searchInput.focus(); });
+    document.querySelector("#article-back").addEventListener("click", showBoard);
+    document.querySelector("#article-reply").addEventListener("click", () => openDialog("reply"));
+    document.querySelector("#article-push").addEventListener("click", () => openDialog("push"));
+    document.querySelector("#article-help").addEventListener("click", () => openDialog("help"));
+    document.querySelector("#board-post").addEventListener("click", () => openDialog("post"));
+    loginForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const code = loginInput.value.trim();
+      if (!code) { loginInput.focus(); return; }
+      userCode = code;
+      localStorage.setItem("marvel-user-code", userCode);
+      loginCover.hidden = true;
+      siteMain.hidden = false;
+      window.scrollTo(0, 0);
+    });
+    document.addEventListener("keydown", event => {
+      if (dialogMode) {
+        if (event.key === "Escape") { event.preventDefault(); closeDialog(); }
+        if (event.ctrlKey && event.key.toLowerCase() === "x" && dialogMode !== "help") { event.preventDefault(); submitDialog(); }
+        return;
+      }
+      if (!contactView.hidden && (event.key === "ArrowLeft" || event.key === "Escape")) { event.preventDefault(); closeContact(); return; }
+      if (!archiveView.hidden && (event.key === "ArrowLeft" || event.key === "Escape")) { event.preventDefault(); showBoard(); return; }
+      if (!articleView.hidden && (event.key === "ArrowLeft" || event.key === "ArrowRight")) { event.preventDefault(); showBoard(); return; }
+      if (event.ctrlKey && event.key.toLowerCase() === "p") { event.preventDefault(); openDialog("post"); return; }
+      if (!articleView.hidden && event.key.toLowerCase() === "y") openDialog("reply");
+      if (!articleView.hidden && (event.key === "X" || event.key === "%")) openDialog("push");
+      if (event.key.toLowerCase() === "h") openDialog("help");
+    });
+    renderPosts();
+  </script>
+</body>
+</html>
