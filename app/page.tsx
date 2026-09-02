@@ -247,6 +247,15 @@ function ArchivePage({
                 alt="從印尼峇里島伍拉·賴國際機場飛往台灣桃園國際機場的航線圖"
               />
             </figure>
+            <section className="archive-accident-map" aria-labelledby="accident-map-title">
+              <h2 id="accident-map-title">臺灣空難地圖</h2>
+              <iframe
+                src="./taiwan-air-accidents-map.html"
+                title="臺灣空難事件互動地圖"
+                loading="lazy"
+                allowFullScreen
+              />
+            </section>
           </div>
         </section>
         <button className="archive-back" type="button" onClick={onBackToIndex}>回到上層</button>
