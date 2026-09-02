@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>臺灣空難地圖</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Helvetica Neue", sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f8f9fa;
+            color: #212529;
+            overflow: hidden;
+        }
+
+        /* 頂部質感標題 */
+        header {
+            height: 56px;
+            background: #1e2329;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 1000;
+            border-bottom: 2px solid #e63946;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+        }
+
+        header .subtitle {
+            font-size: 0.75rem;
+            color: #8d96a0;
+            letter-spacing: 0.05em;
+        }
+
+        /* 主要內容區域 */
+        .main-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 56px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 地圖區域 */
+        #map {
+            flex: 1;
+            height: 100%;
+            z-index: 1;
+            background-color: #f2f3f5;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        #map.leaflet-dragging {
+            cursor: grabbing;
+        }
+
+        .leaflet-marker-icon {
+            cursor: pointer;
+        }
+
+        .leaflet-marker-icon:focus-visible {
+            outline: 3px solid #1d4ed8;
+            outline-offset: 4px;
+            border-radius: 50%;
+        }
+
+        .map-hint {
+            position: absolute;
+            left: 50%;
+            bottom: 18px;
+            z-index: 90;
+            transform: translateX(-50%);
+            padding: 7px 12px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 18px;
+            color: #343a40;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+            font-size: 0.78rem;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        /* 側邊資訊欄 (縮小寬度由 380px -> 310px) */
+        #info-panel {
+            width: 310px;
+            height: 100%;
+            background-color: #ffffff;
+            border-left: 1px solid #e9ecef;
+            padding: 20px;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 100;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+        }
+
+        /* 收合狀態 */
+        #info-panel.collapsed {
+            transform: translateX(100%);
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+
+        /* 關閉/展開按鈕 */
+        .toggle-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: #f1f3f5;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: #495057;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn:hover {
+            background: #e9ecef;
+            color: #212529;
+        }
+
+        /* 面板展開懸浮按鈕 (面板關閉時顯示) */
+        #open-panel-btn {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            z-index: 99;
+            background: #ffffff;
+            border: 1px solid #ced4da;
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #343a40;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 預設提示訊息樣式 */
+        .default-msg {
+            color: #495057;
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.8;
+            margin: auto 0;
+            text-align: center;
+            padding: 0 5px;
+        }
+
+        .default-msg .icon {
+            font-size: 1.8rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        /* 事件標題 */
+        .disaster-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 12px;
+            padding-right: 24px;
+            line-height: 1.3;
+        }
+
+        .meta-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        /* 日期與地點標籤 */
+        .tag {
+            font-size: 0.9rem;
+            font-weight: 500;
+            background-color: #f1f3f5;
+            border: 1px solid #dee2e6;
+            color: #343a40;
+            padding: 5px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+        }
+
+        /* 傷亡高亮方塊 */
+        .casualty-box {
+            background-color: #fff5f5;
+            border: 1px solid #ffe3e3;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+        }
+
+        .casualty-title {
+            font-size: 0.8rem;
+            color: #e63946;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .casualty-num {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #c92a2a;
+        }
+
+        /* 事件描述 */
+        .disaster-desc {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: #495057;
+            text-align: justify;
+        }
+
+        /* 重構雷達標記定位：確保中心點精確對齊座標，不隨縮放偏移 */
+        .pulsing-icon {
+            width: 20px;
+            height: 20px;
+            position: relative;
+        }
+
+        .pulse-ring {
+            width: 20px;
+            height: 20px;
+            background: rgba(230, 57, 70, 0.6);
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: pulse-wave 2s infinite ease-out;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #d90429;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+
+        @keyframes pulse-wave {
+            0% {
+                transform: scale(0.4);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.8);
+                opacity: 0;
+            }
+        }
+
+        /* 手機 RWD */
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; }
+            #info-panel {
+                width: 100%;
+                height: 40vh;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                border-left: none;
+                border-top: 1px solid #e9ecef;
+            }
+            #info-panel.collapsed {
+                transform: translateY(100%);
+            }
+            #open-panel-btn {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+            }
+            .map-hint {
+                top: 12px;
+                bottom: auto;
+            }
+            header .subtitle {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>臺灣空難地圖</h1>
+        <div class="subtitle">TAIWAN CIVIL AVIATION ACCIDENTS MAP</div>
+    </header>
+
+    <div class="main-container">
+        <div
+            id="map"
+            role="application"
+            aria-label="臺灣空難事件互動地圖，可用滑鼠拖曳、滾輪縮放，或用鍵盤方向鍵移動"
+        ></div>
+
+        <div class="map-hint">拖曳移動 · 滾輪縮放 · 點擊紅點查看事件</div>
+
+        <!-- 面板關閉時顯示的開啟按鈕 -->
+        <button id="open-panel-btn" onclick="togglePanel(true)">📋 查看事件資訊</button>
+
+        <!-- 側邊資訊欄 -->
+        <div id="info-panel">
+            <button class="toggle-btn" onclick="togglePanel(false)" title="關閉資訊欄">✕</button>
+            <div id="panel-content" style="height: 100%; display: flex; flex-direction: column;">
+                <div class="default-msg">
+                    <span class="icon">📍</span>
+                    點擊地圖上的紅點<br>查看詳細事件紀錄與傷亡數據
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 1. 初始化地圖
+        const map = L.map('map', {
+            zoomControl: false,
+            dragging: true,
+            scrollWheelZoom: true,
+            doubleClickZoom: true,
+            boxZoom: true,
+            keyboard: true,
+            keyboardPanDelta: 80,
+            touchZoom: true,
+            zoomSnap: 0.5,
+            zoomDelta: 0.5,
+            minZoom: 6,
+            maxZoom: 18
+        }).setView([23.8, 120.9605], 7.5);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        // 2a. 載入 CartoDB Positron 灰白無地形底圖 (無字樣版)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+
+        // 2b. 疊加國土測繪圖資服務雲（NLSC）繁體中文地名圖層
+        L.tileLayer('https://wmts.nlsc.gov.tw/wmts/EMAP01/default/GoogleMapsCompatible/{z}/{y}/{x}', {
+            attribution: '&copy; <a href="https://maps.nlsc.gov.tw/">NLSC</a>',
+            maxZoom: 19,
+            opacity: 0.8
+        }).addTo(map);
+
+        // 3. 空難資料庫
+        const disasters = [
+            {
+                name: "神岡空難",
+                date: "1964-06-20",
+                location: "台中市神岡區",
+                casualty: "57 人罹難",
+                lat: 24.2562,
+                lng: 120.6622,
+                desc: "失事班機由民航空運公司營運，當日預定自台中飛往台北。離地五分鐘後墜毀於台中豐原、神岡、潭子交界處，機上57名乘客與機組人員全數罹難，為台灣民航史上首起空難。"
+            },
+            {
+                name: "三義空難",
+                date: "1981-08-22",
+                location: "苗栗縣三義鄉",
+                casualty: "110 人罹難",
+                lat: 24.3853,
+                lng: 120.7634,
+                desc: "失事班機由遠東航空營運，預定自台北飛往高雄。途中於苗栗縣三義鄉火炎山上空空中拆解墜毀，110人全數罹難。遠東航空後於機尾殘骸處慈濟山腳下立「遠航空難紀念亭」悼念。"
+            },
+            {
+                name: "大園空難",
+                date: "1998-02-16",
+                location: "桃園市大園區",
+                casualty: "203 人罹難（機上196人 + 地面7人）",
+                lat: 25.0601,
+                lng: 121.2104,
+                desc: "失事班機由中華航空營運，預定自印尼峇里島飛往桃園。降落時因重飛操作失誤失速墜毀，機上196人全數罹難，並衝撞國際路二段民宅與汽車，造成地面7死2傷。"
+            },
+            {
+                name: "國華航空新竹空難",
+                date: "1998-03-18",
+                location: "新竹外海",
+                casualty: "13 人罹難",
+                lat: 24.8180,
+                lng: 120.8290,
+                desc: "失事班機由國華航空所營運，當日原預定自新竹飛往高雄。此架班機由於飛行時部分儀器無法正常運作，且夜間起飛導致能見度不足使機組人員失去判斷能力，最終墜於新竹外海，機上13名乘客連同機組人員全數罹難。此次事故更進一步促使航空器飛航安全委員會的成立。"
+            },
+            {
+                name: "新加坡航空006號班機空難",
+                date: "2000-10-31",
+                location: "桃園市大園區",
+                casualty: "83 人罹難",
+                lat: 25.0772,
+                lng: 121.2330,
+                desc: "失事班機由新加坡航空營運，當日預定經台灣飛往洛杉磯。降落時因強風豪雨及操作失誤誤闖維修中跑道，擦撞施工機具後粉碎性爆炸，機上179人中83人罹難。"
+            },
+            {
+                name: "澎湖空難",
+                date: "2002-05-25",
+                location: "澎湖縣外海",
+                casualty: "225 人罹難",
+                lat: 23.7500,
+                lng: 119.8300,
+                desc: "失事班機由中華航空營運，預定自台北飛往香港。途經澎湖高空時因金屬疲勞與結構失效空中解體，225人全數罹難，墜落地點位於馬公市東北方約23海浬處。"
+            },
+            {
+                name: "復興航空222號班機空難",
+                date: "2014-07-23",
+                location: "澎湖縣湖西鄉",
+                casualty: "48 人罹難（10人生還，地面5傷）",
+                lat: 23.5822,
+                lng: 119.6331,
+                desc: "失事班機由復興航空所營運，當日原預定自高雄飛往澎湖。此架班機疑似因颱風麥德姆所造成的極端天氣狀況導致降落不順且重飛失敗，最終墜於澎湖縣湖西鄉西溪村後起火燃燒。機上58名乘客連同機組人員共48人罹難、10人生還。此次空難亦波及11棟民宅，造成地面5人輕傷。"
+            },
+            {
+                name: "復興航空235號班機空難",
+                date: "2015-02-04",
+                location: "台北市南港區",
+                casualty: "43 人罹難（15人生還）",
+                lat: 25.0632,
+                lng: 121.6358,
+                desc: "失事班機由復興航空營運，預定自台北飛往金門。起飛不久後因單引擎故障且機組員人為操作失誤誤關正常引擎，導致失速墜毀於基隆河南港段，為台灣首起墜毀於河川之民航空難。"
+            }
+        ];
+
+        // 4. 動態雷達標記 Icon（精確指定中心錨點 [10, 10]）
+        const pulseIcon = L.divIcon({
+            className: 'pulsing-icon',
+            html: `<div class="pulse-ring"></div><div class="pulse-dot"></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+
+        // 5. 繪製標記與互動事件
+        disasters.forEach(item => {
+            const marker = L.marker([item.lat, item.lng], {
+                icon: pulseIcon,
+                keyboard: true,
+                title: item.name,
+                alt: `${item.name}，按 Enter 查看詳細資訊`,
+                riseOnHover: true,
+                bubblingMouseEvents: false
+            }).addTo(map);
+
+            marker.bindTooltip(item.name, {
+                permanent: false,
+                direction: 'top',
+                offset: [0, -8],
+                opacity: 0.95
+            });
+
+            marker.on('click', () => {
+                togglePanel(true);
+
+                const panelContent = document.getElementById('panel-content');
+                panelContent.innerHTML = `
+                    <div class="disaster-title">${item.name}</div>
+                    <div class="meta-group">
+                        <span class="tag">📅 事發日期：${item.date}</span>
+                        <span class="tag">📍 失事地點：${item.location}</span>
+                    </div>
+                    <div class="casualty-box">
+                        <div class="casualty-title">傷亡統計</div>
+                        <div class="casualty-num">${item.casualty}</div>
+                    </div>
+                    <div class="disaster-desc">${item.desc}</div>
+                `;
+                window.setTimeout(() => {
+                    map.invalidateSize({ animate: true });
+                    map.flyTo(
+                        [item.lat, item.lng],
+                        Math.max(map.getZoom(), 10),
+                        { animate: true, duration: 0.8 }
+                    );
+                }, 380);
+            });
+        });
+
+        // 6. 控制資訊欄關閉/開啟
+        function togglePanel(show) {
+            const panel = document.getElementById('info-panel');
+            const openBtn = document.getElementById('open-panel-btn');
+
+            if (show) {
+                panel.classList.remove('collapsed');
+                openBtn.style.display = 'none';
+            } else {
+                panel.classList.add('collapsed');
+                openBtn.style.display = 'flex';
+            }
+
+            window.setTimeout(() => {
+                map.invalidateSize({ animate: true });
+            }, 380);
+        }
+
+        // 容器尺寸改變時重新計算地圖，避免面板收合或旋轉手機後出現空白區。
+        if ('ResizeObserver' in window) {
+            const mapResizeObserver = new ResizeObserver(() => map.invalidateSize());
+            mapResizeObserver.observe(document.querySelector('.main-container'));
+        } else {
+            window.addEventListener('resize', () => map.invalidateSize());
+        }
+    </script>
+</body>
+</html>  
